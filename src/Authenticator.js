@@ -17,8 +17,6 @@ class Authenticator extends React.Component {
   handleAuthenticate() {
     console.log("Handling authentication attempt");
 
-    console.log(this.state);
-
     console.log(
       "ClientId: " +
         this.state.clientId +
@@ -57,6 +55,7 @@ class Authenticator extends React.Component {
       })
       .then((data) => {
         console.log(data);
+        this.props.onAuthenticationSuccessful(JSON.parse(data).access_token);
       })
       .catch((err) => {
         console.error(err);
