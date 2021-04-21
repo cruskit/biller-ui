@@ -6,6 +6,7 @@ import Authenticator from "./Authenticator";
 import AuthenticationDetails from "./AuthenticationDetails";
 import BillerEntry from "./BillerEntry";
 import BillerDisplay from "./BillerDisplay";
+import UserActions from "./UserActions";
 
 class App extends React.Component {
   constructor(props) {
@@ -88,6 +89,8 @@ class App extends React.Component {
         )}
 
         <br />
+
+        {this.state.authDetails && <UserActions />}
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>

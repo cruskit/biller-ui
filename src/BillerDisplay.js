@@ -7,7 +7,7 @@ class BillerDisplay extends React.Component {
     if (currentBiller == null) {
       return (
         <tr>
-          <td colspan="5">Biller is not currently in BMF</td>
+          <td colSpan="5">Biller is not currently in BMF</td>
         </tr>
       );
     }
@@ -27,7 +27,7 @@ class BillerDisplay extends React.Component {
     if (proposedBiller == null) {
       return (
         <tr>
-          <td colspan="5">No proposed changes for biller</td>
+          <td colSpan="5">No proposed changes for biller</td>
         </tr>
       );
     }
