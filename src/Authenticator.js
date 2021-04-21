@@ -8,7 +8,7 @@ class Authenticator extends React.Component {
     super(props);
 
     this.state = {
-      baseUrl: "api.bpaygroup.com.au/oauth/token",
+      baseUrl: "https://st-api.bpaygroup.com.au/oauth/token",
       clientId: "",
       clientSecret: "",
     };
@@ -17,19 +17,13 @@ class Authenticator extends React.Component {
   async handleAuthenticate() {
     console.log("Handling authentication attempt");
 
-    console.log(
-      "ClientId: " +
-        this.state.clientId +
-        ", clientSecret: " +
-        this.state.clientSecret
-    );
+    console.log("ClientId: " + this.state.clientId + ", clientSecret: " + this.state.clientSecret);
 
-    const bearerToken = btoa(
-      this.state.clientId + ":" + this.state.clientSecret
-    );
+    const bearerToken = btoa(this.state.clientId + ":" + this.state.clientSecret);
     console.log("Bearer token: " + bearerToken);
 
-    const url = "https://api.bpaygroup.com.au/oauth/token";
+    //    const url = "https://api.bpaygroup.com.au/oauth/token";
+    const url = this.state.baseUrl;
     const options = {
       method: "POST",
       headers: {
@@ -46,15 +40,15 @@ class Authenticator extends React.Component {
       if (response.ok) {
         const token = await response.json();
         console.log("Response: " + JSON.stringify(token));
-        this.props.onAuthenticationSuccessful(token.access_token);
+        let authDetails = {
+            clientId: this.state.clientId,
+            baseUrl: this.state.baseUrl,
+            token: token,
+        }
+        this.props.onAuthenticationSuccessful(authDetails);
       } else {
         console.log("Failed auth response: " + response);
-        throw new Error(
-          "Error response from auth, code: " +
-            response.status +
-            ", error: " +
-            response.statusText
-        );
+        throw new Error("Error response from auth, code: " + response.status + ", error: " + response.statusText);
       }
     } catch (error) {
       console.log("Failed auth attempt: " + error);
