@@ -5,6 +5,7 @@ import "./App.css";
 import Authenticator from "./Authenticator";
 import AuthenticationDetails from "./AuthenticationDetails";
 import BillerEntry from "./BillerEntry";
+import BillerDisplay from "./BillerDisplay";
 
 class App extends React.Component {
   constructor(props) {
@@ -26,7 +27,7 @@ class App extends React.Component {
     this.loadBillers(billerCodes);
   }
 
-  getRequestHeaders(){
+  getRequestHeaders() {
     return {
       Authorization: "Bearer " + this.state.authDetails.token.access_token,
       Accept: "application/json",
@@ -70,7 +71,7 @@ class App extends React.Component {
   render() {
     return (
       <Container fluid>
-        <h1>BPAY Biller Manager</h1>
+        <h1>Biller Update Tool</h1>
 
         {!this.state.authDetails && (
           <Authenticator
@@ -85,6 +86,10 @@ class App extends React.Component {
         {this.state.authDetails && (
           <BillerEntry onBillerEntry={(billerCodes) => this.handleBillerSelection(billerCodes)} />
         )}
+
+        <br />
+
+        {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>
     );
   }
