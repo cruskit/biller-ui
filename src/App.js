@@ -39,7 +39,7 @@ class App extends React.Component {
     // Clear out any previous biller details that are being rendered
     this.setState({ billerCodes: billerCodes, billerDetails: null });
 
-    console.log("Starting to load biller details, num to load: " + this.state);
+    console.log("Starting to load biller details, num to load: " + billerCodes.length);
 
     const billerDetails = [];
 
