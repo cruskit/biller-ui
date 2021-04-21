@@ -8,7 +8,7 @@ class Authenticator extends React.Component {
     super(props);
 
     this.state = {
-      baseUrl: "https://st-api.bpaygroup.com.au/oauth/token",
+      baseUrl: "https://st-api.bpaygroup.com.au",
       clientId: "",
       clientSecret: "",
     };
@@ -23,7 +23,7 @@ class Authenticator extends React.Component {
     console.log("Bearer token: " + bearerToken);
 
     //    const url = "https://api.bpaygroup.com.au/oauth/token";
-    const url = this.state.baseUrl;
+    const url = this.state.baseUrl + "/oauth/token";
     const options = {
       method: "POST",
       headers: {
@@ -58,7 +58,7 @@ class Authenticator extends React.Component {
   render() {
     return (
       <Container>
-        <Form>
+        <Form onSubmit={e => e.preventDefault()}>
           <Form.Group controlId="formClientId">
             <Form.Label>Client Id</Form.Label>
             <Form.Control
