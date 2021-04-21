@@ -90,7 +90,7 @@ class App extends React.Component {
 
         <br />
 
-        {this.state.authDetails && <UserActions />}
+        {this.state.billerDetails && <UserActions />}
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>
