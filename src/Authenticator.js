@@ -14,7 +14,7 @@ class Authenticator extends React.Component {
     };
   }
 
-  handleAuthenticate() {
+  async handleAuthenticate() {
     console.log("Handling authentication attempt");
 
     console.log(
@@ -24,15 +24,16 @@ class Authenticator extends React.Component {
         this.state.clientSecret
     );
 
-    const bearerToken = btoa(this.state.clientId + ":" + this.state.clientSecret);
+    const bearerToken = btoa(
+      this.state.clientId + ":" + this.state.clientSecret
+    );
     console.log("Bearer token: " + bearerToken);
 
     const url = "https://api.bpaygroup.com.au/oauth/token";
     const options = {
       method: "POST",
       headers: {
-        Authorization:
-          "Basic " + bearerToken,
+        Authorization: "Basic " + bearerToken,
         Accept: "application/json",
       },
       body: new URLSearchParams({
@@ -40,26 +41,24 @@ class Authenticator extends React.Component {
         grant_type: "client_credentials",
       }),
     };
-    fetch(url, options)
-      .then((response) => {
-        if (response.ok) {
-          return response.text();
-        }
-        return response.text().then((err) => {
-          return Promise.reject({
-            status: response.status,
-            statusText: response.statusText,
-            errorMessage: err,
-          });
-        });
-      })
-      .then((data) => {
-        console.log(data);
-        this.props.onAuthenticationSuccessful(JSON.parse(data).access_token);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        const token = await response.json();
+        console.log("Response: " + JSON.stringify(token));
+        this.props.onAuthenticationSuccessful(token.access_token);
+      } else {
+        console.log("Failed auth response: " + response);
+        throw new Error(
+          "Error response from auth, code: " +
+            response.status +
+            ", error: " +
+            response.statusText
+        );
+      }
+    } catch (error) {
+      console.log("Failed auth attempt: " + error);
+    }
   }
 
   render() {
