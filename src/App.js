@@ -56,8 +56,12 @@ class App extends React.Component {
     };
   }
 
-  async loadBillers(billerCodes) {
-    this.clearStatusMessages();
+  async loadBillers(billerCodes, preserveStatusMessages) {
+
+    // Used when load called after an update
+    if (!preserveStatusMessages){
+      this.clearStatusMessages();
+    }
 
     // Clear out any previous biller details that were previously loaded
     this.setState({ billerCodes: billerCodes, billerDetails: null });
@@ -165,7 +169,7 @@ class App extends React.Component {
     }
 
     // Refresh the status of the billers that have been updated
-    this.loadBillers(this.state.billerCodes);
+    this.loadBillers(this.state.billerCodes, true);
   }
 
   async handleCloseBillers(closeDetails) {
@@ -229,7 +233,7 @@ class App extends React.Component {
     }
 
     // Refresh the status of the billers that have been updated
-    this.loadBillers(this.state.billerCodes);
+    this.loadBillers(this.state.billerCodes, true);
   }
 
   async handleDeletePendingChanges() {
