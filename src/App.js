@@ -7,6 +7,7 @@ import AuthenticationDetails from "./AuthenticationDetails";
 import BillerEntry from "./BillerEntry";
 import BillerDisplay from "./BillerDisplay";
 import UserActions from "./UserActions";
+import StatusUpdates from "./StatusUpdates";
 
 // Status Update
 const STATUS_UNCHANGED = 0;
@@ -19,7 +20,23 @@ class App extends React.Component {
     this.state = {
       baseUrl: "api.bpaygroup.com.au",
       authDetails: null,
+      statusUpdates: [],
     };
+  }
+
+  addErrorStatusMessage(message) {
+    let messages = this.state.statusUpdates.slice();
+    messages.push({ message: message, variant: "danger" });
+    this.setState({ statusUpdates: messages });
+  }
+  addSuccessStatusMessage(message) {
+    let messages = this.state.statusUpdates.slice();
+    messages.push({ message: message, variant: "success" });
+    this.setState({ statusUpdates: messages });
+  }
+
+  clearStatusMessages() {
+    this.setState({ statusUpdates: [] });
   }
 
   handleAuthenticationSuccessful(authDetails) {
@@ -64,7 +81,6 @@ class App extends React.Component {
           billerDetails.push(billerDetail);
         } else {
           console.log("Failed to retrieve biller details, code " + response.status + ", error: " + response.statusText);
-          throw new Error("Error response from auth, code: " + response.status + ", error: " + response.statusText);
         }
       } catch (error) {
         console.log("Failed biller retrieval attempt: " + error);
@@ -75,6 +91,8 @@ class App extends React.Component {
   }
 
   async handleUpdateBillers(updateDetails) {
+    this.clearStatusMessages();
+
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
     for (let biller of this.state.billerDetails) {
@@ -117,18 +135,22 @@ class App extends React.Component {
           biller.updateStatus = STATUS_UPDATE_SUCCESS;
         } else {
           let bodyText = await response.text();
-          console.log(
+          let message =
             "Failed to update biller, billerCode: " +
-              billerCode +
-              ", errorCode: " +
-              response.status +
-              ", error: " +
-              bodyText
-          );
+            billerCode +
+            ", errorCode: " +
+            response.status +
+            ", error: " +
+            bodyText;
+
+          console.log(message);
+          this.addErrorStatusMessage(message);
           biller.updateStatus = STATUS_UPDATE_FAILED;
         }
       } catch (error) {
-        console.log("Failed biller update attempt, billerCode: " + billerCode + ", error: " + error);
+        const message = "Failed biller update attempt, billerCode: " + billerCode + ", error: " + error;
+        console.log(message);
+        this.addErrorStatusMessage(message);
         biller.updateStatus = STATUS_UPDATE_FAILED;
       }
     }
@@ -138,6 +160,7 @@ class App extends React.Component {
   }
 
   async handleCloseBillers(closeDetails) {
+    this.clearStatusMessages();
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
     for (let biller of this.state.billerDetails) {
@@ -175,19 +198,23 @@ class App extends React.Component {
           console.log("Close biller " + billerCode + ", response detail: " + JSON.stringify(billerDetail));
           biller.updateStatus = STATUS_UPDATE_SUCCESS;
         } else {
-          let bodyText = await response.text();
-          console.log(
+          const bodyText = await response.text();
+          const message =
             "Failed to close biller, billerCode: " +
-              billerCode +
-              ", errorCode: " +
-              response.status +
-              ", error: " +
-              bodyText
-          );
+            billerCode +
+            ", errorCode: " +
+            response.status +
+            ", error: " +
+            bodyText;
+
+          console.log(message);
+          this.addErrorStatusMessage(message);
           biller.updateStatus = STATUS_UPDATE_FAILED;
         }
       } catch (error) {
-        console.log("Failed biller close attempt, billerCode: " + billerCode + ", error: " + error);
+        const message = "Failed biller close attempt, billerCode: " + billerCode + ", error: " + error;
+        console.log(message);
+        this.addErrorStatusMessage(message);
         biller.updateStatus = STATUS_UPDATE_FAILED;
       }
     }
@@ -197,6 +224,7 @@ class App extends React.Component {
   }
 
   async handleDeletePendingChanges() {
+    this.clearStatusMessages();
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges/";
 
     for (let biller of this.state.billerDetails) {
@@ -268,6 +296,8 @@ class App extends React.Component {
             onUpdateBillers={(updateDetails) => this.handleUpdateBillers(updateDetails)}
           />
         )}
+
+        <StatusUpdates updates={this.state.statusUpdates} />
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>
