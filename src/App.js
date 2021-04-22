@@ -57,7 +57,9 @@ class App extends React.Component {
   }
 
   async loadBillers(billerCodes) {
-    // Clear out any previous biller details that are being rendered
+    this.clearStatusMessages();
+
+    // Clear out any previous biller details that were previously loaded
     this.setState({ billerCodes: billerCodes, billerDetails: null });
 
     console.log("Starting to load biller details, num to load: " + billerCodes.length);
@@ -80,10 +82,17 @@ class App extends React.Component {
           console.log("Response biller Detail: " + JSON.stringify(billerDetail));
           billerDetails.push(billerDetail);
         } else {
-          console.log("Failed to retrieve biller details, code " + response.status + ", error: " + response.statusText);
+          let bodyText = await response.text();
+          let message =
+            "Failed to load billerCode: " + billerCode + ", httpCode: " + response.status + ", error: " + bodyText;
+
+          console.log(message);
+          this.addErrorStatusMessage(message);
         }
       } catch (error) {
-        console.log("Failed biller retrieval attempt: " + error);
+        const message = "Failed to load biller, billerCode: " + billerCode + ", error: " + error;
+        console.log(message);
+        this.addErrorStatusMessage(message);
       }
     }
 
