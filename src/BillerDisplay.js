@@ -7,7 +7,7 @@ class BillerDisplay extends React.Component {
     if (currentBiller == null) {
       return (
         <tr>
-          <td colSpan="5">Biller is not currently in BMF</td>
+          <td colSpan="6">Biller is not currently in BMF</td>
         </tr>
       );
     }
@@ -16,6 +16,7 @@ class BillerDisplay extends React.Component {
       <tr>
         <td>Current</td>
         <td>{billerState.billerCode}</td>
+        <td>{billerState.status}</td>
         <td>{billerState.shortName}</td>
         <td>{billerState.longName}</td>
         <td>{currentBiller.activationDate}</td>
@@ -27,7 +28,7 @@ class BillerDisplay extends React.Component {
     if (proposedBiller == null) {
       return (
         <tr>
-          <td colSpan="5">No proposed changes for biller</td>
+          <td colSpan="6">No proposed changes for biller</td>
         </tr>
       );
     }
@@ -36,6 +37,7 @@ class BillerDisplay extends React.Component {
       <tr>
         <td>Proposed</td>
         <td>{billerState.billerCode}</td>
+        <td>{billerState.status}</td>
         <td>{billerState.shortName}</td>
         <td>{billerState.longName}</td>
         <td>{proposedBiller.publicationInstructions.activationDate}</td>
@@ -61,7 +63,7 @@ class BillerDisplay extends React.Component {
         <Table bordered size="sm" striped>
           <thead>
             <tr className="text-center">
-              <th>State</th>
+              <th>Status</th>
               <th>Biller Code</th>
               <th>Short Name</th>
               <th>Long Name</th>

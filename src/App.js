@@ -8,6 +8,10 @@ import BillerEntry from "./BillerEntry";
 import BillerDisplay from "./BillerDisplay";
 import UserActions from "./UserActions";
 
+// Status Update
+const STATUS_UNCHANGED = 0;
+const STATUS_UPDATE_FAILED = 1;
+const STATUS_UPDATE_SUCCESS = 2;
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -55,6 +59,7 @@ class App extends React.Component {
         const response = await fetch(url, options);
         if (response.ok) {
           const billerDetail = await response.json();
+          billerDetail.updateStatus = STATUS_UNCHANGED;
           console.log("Response biller Detail: " + JSON.stringify(billerDetail));
           billerDetails.push(billerDetail);
         } else {
@@ -67,6 +72,104 @@ class App extends React.Component {
     }
 
     this.setState({ billerCodes: billerCodes, billerDetails: billerDetails });
+  }
+
+  async handleCloseBillers(closeDetails) {
+    const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
+
+    for (let biller of this.state.billerDetails) {
+      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+      let activationDate = closeDetails.activationDate;
+      let closureReasonCode = closeDetails.closeReason;
+      let comment = closeDetails.comment;
+
+      let body = {
+        changeType: "CLOSE",
+        billerCloseDetails: {
+          billerCode: billerCode,
+          closureReasonCode: closureReasonCode,
+          comment: comment,
+        },
+        publicationInstructions: {
+          activationDate: activationDate,
+          publishToBMFImmediately: false,
+        },
+      };
+
+      const header = this.getRequestHeaders();
+      header["Content-Type"] = "application/json";
+
+      const options = {
+        method: "POST",
+        headers: header,
+        body: JSON.stringify(body),
+      };
+
+      try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+          const billerDetail = await response.json();
+          console.log("Close biller " + billerCode + ", response detail: " + JSON.stringify(billerDetail));
+          biller.updateStatus = STATUS_UPDATE_SUCCESS;
+        } else {
+          let bodyText = await response.text();
+          console.log(
+            "Failed to close biller, billerCode: " +
+              billerCode +
+              ", errorCode: " +
+              response.status +
+              ", error: " +
+              bodyText
+          );
+          biller.updateStatus = STATUS_UPDATE_FAILED;
+        }
+      } catch (error) {
+        console.log("Failed biller close attempt, billerCode: " + billerCode + ", error: " + error);
+        biller.updateStatus = STATUS_UPDATE_FAILED;
+      }
+    }
+
+    // Refresh the status of the billers that have been updated
+    this.loadBillers(this.state.billerCodes);
+  }
+
+  async handleDeletePendingChanges() {
+    const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges/";
+
+    for (let biller of this.state.billerDetails) {
+      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+
+      const options = {
+        method: "DELETE",
+        headers: this.getRequestHeaders(),
+      };
+
+      try {
+        console.log("Attemping to delete pending change for billerCode: " + billerCode);
+        const response = await fetch(url + billerCode, options);
+        if (response.ok) {
+          const billerDetail = await response.json();
+          console.log("Close biller " + billerCode + ", response detail: " + JSON.stringify(billerDetail));
+          biller.updateStatus = STATUS_UPDATE_SUCCESS;
+        } else {
+          console.log(
+            "Failed to delete pending change for billerCode: " +
+              billerCode +
+              ", errorCode: " +
+              response.status +
+              ", error: " +
+              response.statusText
+          );
+          biller.updateStatus = STATUS_UPDATE_FAILED;
+          throw new Error(
+            "Error deleting pending change for billerCode: " + billerCode + ", code: " + response.status + ", error: " + response.statusText
+          );
+        }
+      } catch (error) {
+        console.log("Failed delete pending change attempt, billerCode: " + billerCode + ", error: " + error);
+        biller.updateStatus = STATUS_UPDATE_FAILED;
+      }
+    }
   }
 
   render() {
@@ -90,7 +193,10 @@ class App extends React.Component {
 
         <br />
 
-        {this.state.billerDetails && <UserActions />}
+        {this.state.billerDetails && <UserActions 
+        onCloseBillers={(closeDetails) => this.handleCloseBillers(closeDetails)}
+        onDeletePendingChanges={() => this.handleDeletePendingChanges()}
+         />}
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>
