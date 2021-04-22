@@ -11,6 +11,7 @@ class UserActions extends React.Component {
     this.state = {
       showCloseModal: false,
       showConfirmationModal: false,
+      showUpdateModal: false,
       modalConfirmationMessage: "Confirm proceeding with the bulk operation.",
     };
   }
@@ -40,6 +41,18 @@ class UserActions extends React.Component {
     this.props.onDeletePendingChanges();
   }
 
+  handleUpdateBillersRequest() {
+    console.log("User has requested to update billers");
+
+    this.setState({ showUpdateModal: true });
+  }
+
+  handleUpdateBillersConfirmation(updateDetails) {
+    console.log("User has confirmed update billers with changes: " + JSON.stringify(updateDetails));
+    this.setState({ showUpdateModal: false });
+    this.props.onUpdateBillers(updateDetails);
+  }
+
   handleCloseBillersRequest() {
     console.log("User has requested to close all billers");
 
@@ -64,6 +77,8 @@ class UserActions extends React.Component {
             <strong>&nbsp; &nbsp; Actions</strong> &nbsp;
             <Button onClick={() => this.handleDeletePendingChangeRequest()}>Delete Pending Changes</Button>
             &nbsp; &nbsp;
+            <Button onClick={() => this.handleUpdateBillersRequest()}>Update Billers</Button>
+            &nbsp; &nbsp;
             <Button onClick={() => this.handleCloseBillersRequest()}>Close Billers</Button>
           </p>
         </Row>
@@ -83,11 +98,91 @@ class UserActions extends React.Component {
           </Modal.Footer>
         </Modal>
 
+        <UpdateBillerConfirmationModal
+          show={this.state.showUpdateModal}
+          onCancel={() => this.setState({ showUpdateModal: false })}
+          onConfirm={(updateDetails) => this.handleUpdateBillersConfirmation(updateDetails)}
+        />
+
         <CloseBillerConfirmationModal
           show={this.state.showCloseModal}
           onCancel={() => this.setState({ showCloseModal: false })}
           onConfirm={(closeDetails) => this.handleCloseBillersConfirmation(closeDetails)}
         />
+      </>
+    );
+  }
+}
+
+class UpdateBillerConfirmationModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activationDate: "",
+      upperLimit: "",
+      comment: "",
+    };
+  }
+
+  submitForm() {
+    const updateDetails = {
+      activationDate: this.state.activationDate,
+      upperLimit: this.state.upperLimit,
+      comment: this.state.comment,
+    };
+    this.props.onConfirm(updateDetails);
+  }
+
+  render() {
+    return (
+      <>
+        <Modal show={this.props.show} onHide={() => this.props.onCancel()}>
+          <Modal.Header closeButton>
+            <Modal.Title>Update Billers</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group controlId="formActivationDate">
+                <Form.Label>Activation Date</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="2021-08-22"
+                  value={this.state.activationDate}
+                  onChange={(e) => this.setState({ activationDate: e.target.value })}
+                />
+              </Form.Group>
+
+              <Form.Group controlId="formUpperLimit">
+                <Form.Label>Upper Limit</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="123"
+                  value={this.state.upperLimit}
+                  onChange={(e) => this.setState({ upperLimit: e.target.value })}
+                />
+              </Form.Group>
+
+              <Form.Group controlId="formComment">
+                <Form.Label>Comment</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Comment on why the biller is being updated"
+                  value={this.state.comment}
+                  onChange={(e) => this.setState({ comment: e.target.value })}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => this.props.onCancel()}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={() => this.submitForm()}>
+              Update Billers
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </>
     );
   }
@@ -147,7 +242,7 @@ class CloseBillerConfirmationModal extends React.Component {
                 </Form.Control>
               </Form.Group>
 
-              <Form.Group controlId="formActivationDate">
+              <Form.Group controlId="formComment">
                 <Form.Label>Comment</Form.Label>
                 <Form.Control
                   type="text"
@@ -171,4 +266,5 @@ class CloseBillerConfirmationModal extends React.Component {
     );
   }
 }
+
 export default UserActions;

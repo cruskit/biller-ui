@@ -74,6 +74,69 @@ class App extends React.Component {
     this.setState({ billerCodes: billerCodes, billerDetails: billerDetails });
   }
 
+  async handleUpdateBillers(updateDetails) {
+    const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
+
+    for (let biller of this.state.billerDetails) {
+      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+      let activationDate = updateDetails.activationDate;
+      let comment = updateDetails.comment;
+
+      // Start with the existing state and apply the changes to it
+      let proposedState = JSON.parse(JSON.stringify(biller.currentBillerDetails.billerState));
+      for (let paymentMethod of proposedState.acceptedPaymentMethods) {
+        paymentMethod.maxAmount = updateDetails.upperLimit;
+      }
+      proposedState.comment = comment;
+      delete proposedState.changeCollateral;
+      delete proposedState.status;
+
+      let body = {
+        changeType: "UPDATE",
+        proposedBillerDetails: proposedState,
+        publicationInstructions: {
+          activationDate: activationDate,
+          publishToBMFImmediately: false,
+        },
+      };
+
+      const header = this.getRequestHeaders();
+      header["Content-Type"] = "application/json";
+
+      const options = {
+        method: "POST",
+        headers: header,
+        body: JSON.stringify(body),
+      };
+
+      try {
+        const response = await fetch(url, options);
+        if (response.ok) {
+          const billerDetail = await response.json();
+          console.log("Update biller " + billerCode + ", response detail: " + JSON.stringify(billerDetail));
+          biller.updateStatus = STATUS_UPDATE_SUCCESS;
+        } else {
+          let bodyText = await response.text();
+          console.log(
+            "Failed to update biller, billerCode: " +
+              billerCode +
+              ", errorCode: " +
+              response.status +
+              ", error: " +
+              bodyText
+          );
+          biller.updateStatus = STATUS_UPDATE_FAILED;
+        }
+      } catch (error) {
+        console.log("Failed biller update attempt, billerCode: " + billerCode + ", error: " + error);
+        biller.updateStatus = STATUS_UPDATE_FAILED;
+      }
+    }
+
+    // Refresh the status of the billers that have been updated
+    this.loadBillers(this.state.billerCodes);
+  }
+
   async handleCloseBillers(closeDetails) {
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
@@ -162,7 +225,12 @@ class App extends React.Component {
           );
           biller.updateStatus = STATUS_UPDATE_FAILED;
           throw new Error(
-            "Error deleting pending change for billerCode: " + billerCode + ", code: " + response.status + ", error: " + response.statusText
+            "Error deleting pending change for billerCode: " +
+              billerCode +
+              ", code: " +
+              response.status +
+              ", error: " +
+              response.statusText
           );
         }
       } catch (error) {
@@ -193,10 +261,13 @@ class App extends React.Component {
 
         <br />
 
-        {this.state.billerDetails && <UserActions 
-        onCloseBillers={(closeDetails) => this.handleCloseBillers(closeDetails)}
-        onDeletePendingChanges={() => this.handleDeletePendingChanges()}
-         />}
+        {this.state.billerDetails && (
+          <UserActions
+            onCloseBillers={(closeDetails) => this.handleCloseBillers(closeDetails)}
+            onDeletePendingChanges={() => this.handleDeletePendingChanges()}
+            onUpdateBillers={(updateDetails) => this.handleUpdateBillers(updateDetails)}
+          />
+        )}
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
       </Container>
