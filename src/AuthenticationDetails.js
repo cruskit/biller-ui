@@ -2,7 +2,7 @@
 function AuthenticationDetails(props) {
   return (
     <>
-      <p>Authenticated as: {props.clientId}, using environment: {props.baseUrl}</p>
+      <p>Client Id: {props.clientId}, Service: {props.baseUrl}</p>
     </>
   );
 }

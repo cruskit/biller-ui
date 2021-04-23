@@ -24,7 +24,7 @@ class BillerEntry extends React.Component {
 
   render() {
     return (
-      <Container>
+      <Container fluid>
         <Form onSubmit={(e) => e.preventDefault()}>
           <Form.Group controlId="formBillerCodes">
             <Form.Label>Biller Codes</Form.Label>
