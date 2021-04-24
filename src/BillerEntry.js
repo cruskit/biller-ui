@@ -17,9 +17,7 @@ class BillerEntry extends React.Component {
   handleBillerSubmission() {
     console.log("Handling user entered biller codes: " + this.state.enteredCodes);
 
-    let billerCodes = this.state.enteredCodes.split(",");
-
-    // TODO: Some error handling, strip spaces, etc
+    let billerCodes = this.state.enteredCodes.split(",").map(s => s.trim());;
 
     this.props.onBillerEntry(billerCodes);
   }
