@@ -48,7 +48,7 @@ class App extends React.Component {
   }
 
   updateProgress(now, billerDescription) {
-    console.log(`Updating progress dialog: {now}, {billerDescription}`, now, billerDescription);
+    console.log(`Updating progress dialog: ${now}, ${billerDescription}`);
     const progress = JSON.parse(JSON.stringify(this.state.progressDialog));
     progress.now = now;
     progress.billerDescription = billerDescription;
@@ -118,9 +118,7 @@ class App extends React.Component {
 
       // Hack to release the thread so the updated dialog can be rendered
       await this.sleep(1);
-
       this.updateProgress(index + 1, billerCode);
-
 
       const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges/" + billerCode;
       const options = {
@@ -155,13 +153,18 @@ class App extends React.Component {
 
   async handleUpdateBillers(updateDetails) {
     this.clearStatusMessages();
+    this.showProgressDialog(0, this.state.billerDetails.length, 0, "", "Updating Billers");
 
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
-    for (let biller of this.state.billerDetails) {
-      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+    for (let [index, biller] of this.state.billerDetails.entries()) {
+      let { billerCode, shortName } = biller.currentBillerDetails.billerState;
       let activationDate = updateDetails.activationDate;
       let comment = updateDetails.comment;
+
+      // Hack to release the thread so the updated dialog can be rendered
+      await this.sleep(1);
+      this.updateProgress(index + 1, billerCode + " - " + shortName);
 
       // Start with the existing state and apply the changes to it
       let proposedState = JSON.parse(JSON.stringify(biller.currentBillerDetails.billerState));
@@ -217,6 +220,7 @@ class App extends React.Component {
         biller.updateStatus = STATUS_UPDATE_FAILED;
       }
     }
+    this.hideProgressDialog();
 
     // Refresh the status of the billers that have been updated
     this.loadBillers(this.state.billerCodes, true);
@@ -224,13 +228,19 @@ class App extends React.Component {
 
   async handleCloseBillers(closeDetails) {
     this.clearStatusMessages();
+    this.showProgressDialog(0, this.state.billerDetails.length, 0, "", "Closing billers");
+
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
-    for (let biller of this.state.billerDetails) {
-      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+    for (let [index,biller] of this.state.billerDetails.entries()) {
+      let { billerCode, shortName } = biller.currentBillerDetails.billerState;
       let activationDate = closeDetails.activationDate;
       let closureReasonCode = closeDetails.closeReason;
       let comment = closeDetails.comment;
+
+      // Hack to release the thread so the updated dialog can be rendered
+      await this.sleep(1);
+      this.updateProgress(index + 1, billerCode + " - " + shortName);
 
       let body = {
         changeType: "CLOSE",
@@ -282,16 +292,24 @@ class App extends React.Component {
       }
     }
 
+    this.hideProgressDialog();
+
     // Refresh the status of the billers that have been updated
     this.loadBillers(this.state.billerCodes, true);
   }
 
   async handleDeletePendingChanges() {
     this.clearStatusMessages();
+    this.showProgressDialog(0, this.state.billerDetails.length, 0, "", "Deleting pending changes");
+
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges/";
 
-    for (let biller of this.state.billerDetails) {
-      let billerCode = biller.currentBillerDetails.billerState.billerCode;
+    for (let [index, biller] of this.state.billerDetails.entries()) {
+      let { billerCode, shortName } = biller.currentBillerDetails.billerState;
+
+      // Hack to release the thread so the updated dialog can be rendered
+      await this.sleep(1);
+      this.updateProgress(index + 1, billerCode + " - " + shortName);
 
       const options = {
         method: "DELETE",
@@ -329,6 +347,10 @@ class App extends React.Component {
         biller.updateStatus = STATUS_UPDATE_FAILED;
       }
     }
+
+    this.hideProgressDialog();
+
+    this.loadBillers(this.state.billerCodes, true);
   }
 
   render() {

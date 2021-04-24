@@ -16,7 +16,7 @@ class ProgressDialog extends React.Component {
           <Modal.Body>
             <ProgressBar now={this.props.now} label={progressText} min={this.props.min} max={this.props.max}></ProgressBar>
             <br />
-            <p>Updating: {this.props.currentBillerText}</p>
+            <p>Updating Biller: {this.props.currentBillerText}</p>
           </Modal.Body>
         </Modal>
       </>
