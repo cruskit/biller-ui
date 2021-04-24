@@ -3,54 +3,105 @@ import Table from "react-bootstrap/Table";
 import Row from "react-bootstrap/Row";
 
 class BillerDisplay extends React.Component {
-  renderCurrentBiller(currentBiller) {
-    if (currentBiller == null) {
-      return (
-        <tr>
-          <td colSpan="6">Biller is not currently in BMF</td>
-        </tr>
-      );
+  getPaymentMethodLimits(method, paymentMethods) {
+    for (let paymentMethod of paymentMethods) {
+      if (paymentMethod.paymentMethodType === method) {
+        return `$${paymentMethod.minAmount} - $${paymentMethod.maxAmount}`;
+      }
     }
-    const billerState = currentBiller.billerState;
+    return " ";
+  }
+
+  renderPaymentMethods(paymentMethods, comparedPaymentMethods) {
+    const highlight = { backgroundColor: "#ffff00" };
+    const plain = {};
+
+    let debitStyle = plain,
+      visaStyle = plain,
+      mcStyle = plain,
+      otherStyle = plain;
+    if (comparedPaymentMethods) {
+      debitStyle =
+        this.getPaymentMethodLimits("001", paymentMethods) ===
+        this.getPaymentMethodLimits("001", comparedPaymentMethods)
+          ? plain
+          : highlight;
+      visaStyle =
+        this.getPaymentMethodLimits("101", paymentMethods) ===
+        this.getPaymentMethodLimits("101", comparedPaymentMethods)
+          ? plain
+          : highlight;
+      mcStyle =
+        this.getPaymentMethodLimits("201", paymentMethods) ===
+        this.getPaymentMethodLimits("201", comparedPaymentMethods)
+          ? plain
+          : highlight;
+      otherStyle =
+        this.getPaymentMethodLimits("301", paymentMethods) ===
+        this.getPaymentMethodLimits("301", comparedPaymentMethods)
+          ? plain
+          : highlight;
+    }
+
     return (
-      <tr>
-        <td>Current</td>
-        <td>{billerState.billerCode}</td>
-        <td>{billerState.status}</td>
-        <td>{billerState.shortName}</td>
-        <td>{billerState.longName}</td>
-        <td>{currentBiller.activationDate}</td>
-      </tr>
+      <>
+        <td style={debitStyle}>{this.getPaymentMethodLimits("001", paymentMethods)}</td>
+        <td style={visaStyle}>{this.getPaymentMethodLimits("101", paymentMethods)}</td>
+        <td style={mcStyle}>{this.getPaymentMethodLimits("201", paymentMethods)}</td>
+        <td style={otherStyle}>{this.getPaymentMethodLimits("301", paymentMethods)}</td>
+      </>
     );
   }
 
-  renderProposedBiller(proposedBiller) {
-    if (proposedBiller == null) {
+  renderProposedBiller(proposedBiller, currentBiller) {
+    if (!proposedBiller) {
       return (
-        <tr>
-          <td colSpan="6">No proposed changes for biller</td>
-        </tr>
+        <>
+          <td colSpan="8">No pending change</td>
+        </>
       );
     }
-    const billerState = proposedBiller.proposedBillerState;
+
+    let statusStyle = {};
+    if (proposedBiller.proposedBillerState.status !== currentBiller.billerState.status) {
+      statusStyle = { backgroundColor: "#ffff00" };
+    }
+    let activationDateStyle = {};
+    if (proposedBiller.publicationInstructions.activationDate !== currentBiller.activationDate) {
+      activationDateStyle = { backgroundColor: "#ffff00" };
+    }
+
     return (
-      <tr>
+      <>
         <td>Proposed</td>
-        <td>{billerState.billerCode}</td>
-        <td>{billerState.status}</td>
-        <td>{billerState.shortName}</td>
-        <td>{billerState.longName}</td>
-        <td>{proposedBiller.publicationInstructions.activationDate}</td>
-      </tr>
+        <td>{proposedBiller.proposedBillerState.shortName}</td>
+        <td style={statusStyle}>{proposedBiller.proposedBillerState.status}</td>
+        <td style={activationDateStyle}>{proposedBiller.publicationInstructions.activationDate}</td>
+        {this.renderPaymentMethods(
+          proposedBiller.proposedBillerState.acceptedPaymentMethods,
+          currentBiller.billerState.acceptedPaymentMethods
+        )}
+      </>
     );
   }
 
   renderBillers(billerDetails) {
     const billerRows = billerDetails.map((biller, index) => {
+      const currentBiller = biller.currentBillerDetails;
+      const currentBillerState = biller.currentBillerDetails.billerState;
+      const proposedBiller = biller.proposedBillerDetails;
+
       return (
         <>
-          {this.renderCurrentBiller(biller.currentBillerDetails)}
-          {this.renderProposedBiller(biller.proposedBillerDetails)}
+          <tr>
+            <td rowSpan="2">{currentBillerState.billerCode}</td>
+            <td>Current</td>
+            <td>{currentBillerState.shortName}</td>
+            <td>{currentBillerState.status}</td>
+            <td>{currentBiller.activationDate}</td>
+            {this.renderPaymentMethods(currentBillerState.acceptedPaymentMethods)}
+          </tr>
+          <tr>{this.renderProposedBiller(proposedBiller, currentBiller)}</tr>
         </>
       );
     });
@@ -60,14 +111,18 @@ class BillerDisplay extends React.Component {
   render() {
     return (
       <Row>
-        <Table bordered size="sm" striped>
+        <Table bordered size="sm">
           <thead>
             <tr className="text-center">
-              <th>Status</th>
               <th>Biller Code</th>
+              <th>&nbsp;</th>
               <th>Short Name</th>
-              <th>Long Name</th>
+              <th>Status</th>
               <th>Activation Date</th>
+              <th>Debit</th>
+              <th>Visa</th>
+              <th>Mastercard</th>
+              <th>Other</th>
             </tr>
           </thead>
           <tbody>{this.renderBillers(this.props.billerDetails)}</tbody>
