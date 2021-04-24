@@ -325,26 +325,23 @@ class App extends React.Component {
           console.log("Close biller " + billerCode + ", response detail: " + JSON.stringify(billerDetail));
           biller.updateStatus = STATUS_UPDATE_SUCCESS;
         } else {
-          console.log(
-            "Failed to delete pending change for billerCode: " +
-              billerCode +
-              ", errorCode: " +
-              response.status +
-              ", error: " +
-              response.statusText
-          );
+          const bodyText = await response.text();
+          const message =
+            "Failed to deleting pending biller change, billerCode: " +
+            billerCode +
+            ", errorCode: " +
+            response.status +
+            ", error: " +
+            bodyText;
+
+          console.log(message);
+          this.addErrorStatusMessage(message);
           biller.updateStatus = STATUS_UPDATE_FAILED;
-          throw new Error(
-            "Error deleting pending change for billerCode: " +
-              billerCode +
-              ", code: " +
-              response.status +
-              ", error: " +
-              response.statusText
-          );
         }
       } catch (error) {
-        console.log("Failed delete pending change attempt, billerCode: " + billerCode + ", error: " + error);
+        const message = "Failed delete pending change attempt, billerCode: " + billerCode + ", error: " + error;
+        console.log(message);
+        this.addErrorStatusMessage(message);
         biller.updateStatus = STATUS_UPDATE_FAILED;
       }
     }
