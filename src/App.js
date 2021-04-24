@@ -8,6 +8,7 @@ import BillerEntry from "./BillerEntry";
 import BillerDisplay from "./BillerDisplay";
 import UserActions from "./UserActions";
 import StatusUpdates from "./StatusUpdates";
+import ProgressDialog from "./ProgressDialog";
 
 // Status Update
 const STATUS_UNCHANGED = 0;
@@ -21,7 +22,44 @@ class App extends React.Component {
       baseUrl: "api.bpaygroup.com.au",
       authDetails: null,
       statusUpdates: [],
+      progressDialog: {
+        show: false,
+        title: "",
+        billerDescription: "",
+        min: 0,
+        max: 100,
+        now: 0,
+      },
     };
+  }
+
+  showProgressDialog(min, max, now, billerDescription, title) {
+    console.log("Showing progress dialog");
+    this.setState({
+      progressDialog: {
+        show: true,
+        min: min,
+        max: max,
+        now: now,
+        billerDescription: billerDescription,
+        title: title,
+      },
+    });
+  }
+
+  updateProgress(now, billerDescription) {
+    console.log(`Updating progress dialog: {now}, {billerDescription}`, now, billerDescription);
+    const progress = JSON.parse(JSON.stringify(this.state.progressDialog));
+    progress.now = now;
+    progress.billerDescription = billerDescription;
+    this.setState({ progressDialog: progress });
+  }
+
+  hideProgressDialog() {
+    console.log(`Hiding progress dialog`);
+    const progress = JSON.parse(JSON.stringify(this.state.progressDialog));
+    progress.show = false;
+    this.setState({ progressDialog: progress });
   }
 
   addErrorStatusMessage(message) {
@@ -56,10 +94,13 @@ class App extends React.Component {
     };
   }
 
-  async loadBillers(billerCodes, preserveStatusMessages) {
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
+  async loadBillers(billerCodes, preserveStatusMessages) {
     // Used when load called after an update
-    if (!preserveStatusMessages){
+    if (!preserveStatusMessages) {
       this.clearStatusMessages();
     }
 
@@ -68,10 +109,18 @@ class App extends React.Component {
 
     console.log("Starting to load biller details, num to load: " + billerCodes.length);
 
+    this.showProgressDialog(0, billerCodes.length, 0, "", "Loading Billers");
+
     const billerDetails = [];
 
-    for (let billerCode of billerCodes) {
+    for (let [index, billerCode] of billerCodes.entries()) {
       console.log("Loading biller details for: " + billerCode);
+
+      // Hack to release the thread so the updated dialog can be rendered
+      await this.sleep(1);
+
+      this.updateProgress(index + 1, billerCode);
+
 
       const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges/" + billerCode;
       const options = {
@@ -101,6 +150,7 @@ class App extends React.Component {
     }
 
     this.setState({ billerCodes: billerCodes, billerDetails: billerDetails });
+    this.hideProgressDialog();
   }
 
   async handleUpdateBillers(updateDetails) {
@@ -313,6 +363,15 @@ class App extends React.Component {
         <StatusUpdates updates={this.state.statusUpdates} />
 
         {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
+
+        <ProgressDialog
+          show={this.state.progressDialog.show}
+          min={this.state.progressDialog.min}
+          max={this.state.progressDialog.max}
+          now={this.state.progressDialog.now}
+          title={this.state.progressDialog.title}
+          currentBillerText={this.state.progressDialog.billerDescription}
+        />
       </Container>
     );
   }
