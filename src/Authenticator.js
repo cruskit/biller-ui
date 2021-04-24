@@ -58,6 +58,7 @@ class Authenticator extends React.Component {
   render() {
     return (
       <Container fluid>
+
         <Form onSubmit={e => e.preventDefault()}>
           <Form.Group controlId="formClientId">
             <Form.Label>Client Id</Form.Label>

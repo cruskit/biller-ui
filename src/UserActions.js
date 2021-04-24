@@ -1,5 +1,4 @@
 import React from "react";
-import Row from "react-bootstrap/Row";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
@@ -72,7 +71,6 @@ class UserActions extends React.Component {
   render() {
     return (
       <>
-        <Row>
           <p className="align-middle">
             <strong>&nbsp; &nbsp; Actions</strong> &nbsp;
             <Button onClick={() => this.handleDeletePendingChangeRequest()}>Delete Pending Changes</Button>
@@ -81,7 +79,6 @@ class UserActions extends React.Component {
             &nbsp; &nbsp;
             <Button onClick={() => this.handleCloseBillersRequest()}>Close Billers</Button>
           </p>
-        </Row>
 
         <Modal show={this.state.showConfirmationModal} onHide={() => this.handleConfirmationCancellation()}>
           <Modal.Header closeButton>

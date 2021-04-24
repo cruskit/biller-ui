@@ -1,9 +1,10 @@
 import React from "react";
+import Navbar from "react-bootstrap/Navbar";
+import Nav from "react-bootstrap/Nav";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Container from "react-bootstrap/Container";
 import "./App.css";
 import Authenticator from "./Authenticator";
-import AuthenticationDetails from "./AuthenticationDetails";
 import BillerEntry from "./BillerEntry";
 import BillerDisplay from "./BillerDisplay";
 import UserActions from "./UserActions";
@@ -232,7 +233,7 @@ class App extends React.Component {
 
     const url = this.state.authDetails.baseUrl + "/bpay/v1/billerchanges";
 
-    for (let [index,biller] of this.state.billerDetails.entries()) {
+    for (let [index, biller] of this.state.billerDetails.entries()) {
       let { billerCode, shortName } = biller.currentBillerDetails.billerState;
       let activationDate = closeDetails.activationDate;
       let closureReasonCode = closeDetails.closeReason;
@@ -355,46 +356,54 @@ class App extends React.Component {
 
   render() {
     return (
-      <Container fluid>
-        <h1>Biller Update Tool</h1>
+      <>
+        <Navbar bg="primary" variant="dark">
+          <Navbar.Brand href="#home">BPAY Biller Management</Navbar.Brand>
+          <Nav className="ml-auto mr-1 justify-content-end">
+            <Navbar.Text>
+              {this.state.authDetails &&
+                "ClientId: " + this.state.authDetails.clientId + " : " + this.state.authDetails.baseUrl}
+            </Navbar.Text>
+          </Nav>
+        </Navbar>
 
-        {!this.state.authDetails && (
-          <Authenticator
-            onAuthenticationSuccessful={(authDetails) => this.handleAuthenticationSuccessful(authDetails)}
+        <Container fluid>
+          <h1>Biller Update Tool</h1>
+
+          {!this.state.authDetails && (
+            <Authenticator
+              onAuthenticationSuccessful={(authDetails) => this.handleAuthenticationSuccessful(authDetails)}
+            />
+          )}
+
+          {this.state.authDetails && (
+            <BillerEntry onBillerEntry={(billerCodes) => this.handleBillerSelection(billerCodes)} />
+          )}
+
+          <br />
+
+          {this.state.billerDetails && (
+            <UserActions
+              onCloseBillers={(closeDetails) => this.handleCloseBillers(closeDetails)}
+              onDeletePendingChanges={() => this.handleDeletePendingChanges()}
+              onUpdateBillers={(updateDetails) => this.handleUpdateBillers(updateDetails)}
+            />
+          )}
+
+          <StatusUpdates updates={this.state.statusUpdates} />
+
+          {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
+
+          <ProgressDialog
+            show={this.state.progressDialog.show}
+            min={this.state.progressDialog.min}
+            max={this.state.progressDialog.max}
+            now={this.state.progressDialog.now}
+            title={this.state.progressDialog.title}
+            currentBillerText={this.state.progressDialog.billerDescription}
           />
-        )}
-
-        {this.state.authDetails && (
-          <AuthenticationDetails clientId={this.state.authDetails.clientId} baseUrl={this.state.authDetails.baseUrl} />
-        )}
-
-        {this.state.authDetails && (
-          <BillerEntry onBillerEntry={(billerCodes) => this.handleBillerSelection(billerCodes)} />
-        )}
-
-        <br />
-
-        {this.state.billerDetails && (
-          <UserActions
-            onCloseBillers={(closeDetails) => this.handleCloseBillers(closeDetails)}
-            onDeletePendingChanges={() => this.handleDeletePendingChanges()}
-            onUpdateBillers={(updateDetails) => this.handleUpdateBillers(updateDetails)}
-          />
-        )}
-
-        <StatusUpdates updates={this.state.statusUpdates} />
-
-        {this.state.billerDetails && <BillerDisplay billerDetails={this.state.billerDetails} />}
-
-        <ProgressDialog
-          show={this.state.progressDialog.show}
-          min={this.state.progressDialog.min}
-          max={this.state.progressDialog.max}
-          now={this.state.progressDialog.now}
-          title={this.state.progressDialog.title}
-          currentBillerText={this.state.progressDialog.billerDescription}
-        />
-      </Container>
+        </Container>
+      </>
     );
   }
 }

@@ -1,6 +1,5 @@
 import React from "react";
 import Table from "react-bootstrap/Table";
-import Row from "react-bootstrap/Row";
 
 class BillerDisplay extends React.Component {
   getPaymentMethodLimits(method, paymentMethods) {
@@ -94,7 +93,7 @@ class BillerDisplay extends React.Component {
       return (
         <>
           <tr>
-            <td rowSpan="2">{currentBillerState.billerCode}</td>
+            <td rowSpan="2" className="text-center">{currentBillerState.billerCode}</td>
             <td>Current</td>
             <td>{currentBillerState.shortName}</td>
             <td>{currentBillerState.status}</td>
@@ -110,7 +109,7 @@ class BillerDisplay extends React.Component {
 
   render() {
     return (
-      <Row>
+      <>
         <Table bordered size="sm">
           <thead>
             <tr className="text-center">
@@ -127,7 +126,7 @@ class BillerDisplay extends React.Component {
           </thead>
           <tbody>{this.renderBillers(this.props.billerDetails)}</tbody>
         </Table>
-      </Row>
+      </>
     );
   }
 }
