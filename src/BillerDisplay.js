@@ -69,10 +69,11 @@ class BillerDisplay extends React.Component {
     if (proposedBiller.publicationInstructions.activationDate !== currentBiller.activationDate) {
       activationDateStyle = { backgroundColor: "#ffff00" };
     }
+    const proposedStyle = { backgroundColor: "#ffff00" };
 
     return (
       <>
-        <td>Proposed</td>
+        <td style={proposedStyle}>Proposed</td>
         <td>{proposedBiller.proposedBillerState.shortName}</td>
         <td style={statusStyle}>{proposedBiller.proposedBillerState.status}</td>
         <td style={activationDateStyle}>{proposedBiller.publicationInstructions.activationDate}</td>
